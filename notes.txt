@@ -1,0 +1,10 @@
+programming defi: uniswap: part 1 : https://jeiwan.net/posts/programming-defi-uniswap-1/
+------------------------------
+- alternative to centralized exchanges
+- allows anyone to be a mm
+- constant product function x * y = k
+  - x: ether reserver
+  - y: token reserve
+  - k: constant
+
+
