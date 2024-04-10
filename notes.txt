@@ -6,5 +6,11 @@ programming defi: uniswap: part 1 : https://jeiwan.net/posts/programming-defi-un
   - x: ether reserver
   - y: token reserve
   - k: constant
+- factory is a registery contract that allows the creation of 
+exchangea dn keeps track of all deployed exhcnages
+  - allowing the ability to find exchange address by token address and vice versa
+- exchange contract defines the exchanging logic
+  - one exchange contract for each pair
+
 
 
