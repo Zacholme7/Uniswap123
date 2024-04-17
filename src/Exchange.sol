@@ -2,26 +2,60 @@ pragma solidity ^0.8.0;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Exchange {
+contract Exchange is ERC20 {
   // every exchange only allows swaps with only one token
   // connect exchange with token address
   address public tokenAddress;
 
 
-  constructor(address _token) {
+  constructor(address _token) ERC20("Zuniswap-V1", "ZUNI-V1") {
     require(_token != address(0), "invalid token address");
     tokenAddress = _token;
   }
 
   // liquidity makes trades possible
   // need a way to add in liquidity
-  function addLiquidity(uint256 _tokenAmount) public payable {
-    // cast the token address into a IERC20 interface instance
-    IERC20 token = IERC20(tokenAddress);
+  function addLiquidity(uint256 _tokenAmount) public payable returns (uint256) {
+    if(getReserve() == 0) {
+        // case when the liquidty pool is empty so we can set an arbitrary ratio
+        // cast the token address into a IERC20 interface instance
+        IERC20 token = IERC20(tokenAddress);
 
-    // transfer liqidity to this contract
-    token.transferFrom(msg.sender, address(this), _tokenAmount);
-    I
+        // transfer liqidity to this contract
+        token.transferFrom(msg.sender, address(this), _tokenAmount);
+
+        // upon first deposit, amt lp tokens = amt eth
+        // get amount of eth in contract and mint that many tokens to sender
+        uint256 liqudity = address(this).balance;
+        _mint(msg.sender, liquidity);
+        return liquidity;
+    } else {
+        // establish reserves proportion when there is some liquidity
+        uint256 ethReserve = address(this).balance - msg.value;  // eth reserve we have,
+        uint256 tokenReserve = getReserve(); // token reserve we have
+        uint256 tokenAmount = (msg.value * tokenReserve) / ethReserve;
+        require(_tokenAmount >= tokenAmount, "insufficient token amount");
+
+        // transfer from this sender to this contract
+        IERC20 token = IERC20(tokenAddress);
+        token.transferFrom(msg.sender, address(this), tokenAmount);
+
+        // mit lp tokens proportionally to amount of ethers deposited
+        uint256 liquidity = (totalSupply() * msg.value) / ethReserve;
+        _mint(msg.sender, liqudity);
+        return liquidity;
+    }
+  }
+
+  function removeLiquidity(uint256 _amount) public returns (uint256, uint256) {
+    require(_amount > 0, "invalid amount");
+    uint256 ethAmount = (adddress(this).balance *_amount) / totalSupply();
+    uint256 tokenAmount = (getReserve() * _amount) / totalSupply();
+
+    _burn(msg.sender, _amount);
+    payable(msg.sender).transfer(ethAmount);
+    IERC20(tokenAddress).transfer(msg.sender, tokenAmount);
+    return (ethAmount, tokenAmount);
   }
 
   // returns the token balance of an exchange (this contract)
@@ -33,8 +67,13 @@ contract Exchange {
   function getAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve) private pure returns (uint256) {
     require(inputReserve > 0 && outputReserve > 0, "invalid reserves");
 
-    // outputAmount = (y * dx) / (x + dx)
-    return (outputReserve * inputAmount) / (inputReserve + inputAmount);
+    // floating point is not supported
+
+    uint256 inputAmountWithFee = inputAmount * 99; // taking a 1% fee
+    uint256 numerator = inputAmountWithFee * outputReserve;
+    uint256 denominator = (inputReserve * 100) + inputAmountWithFee;
+
+    return numerator / denominator;
   }
 
 

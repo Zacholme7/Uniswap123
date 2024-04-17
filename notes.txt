@@ -12,5 +12,33 @@ exchangea dn keeps track of all deployed exhcnages
 - exchange contract defines the exchanging logic
   - one exchange contract for each pair
 
+Design for the first iteraction
+- public address that is the address of the token that can be swapped with
+-  constructor that will take in the token address and assign it to the contract
+- addLiquidyt: function to add liquidity to the contract
+    - cast address into IERC20 token and then call transfer from to transfer from the payer to the contract
+- getReserves: get the reserves of the contract
+    - cast the token into a IERC and see how much balance is in this contract
+- getAmount: given a input amount of a token, its liquidity pool and the other tokens liquidty pool
+    - gets the change of the liquidyt pool ( the amount of token change)
+
+
+
+- need to keep ration
+- need to have LP tokens so that people deposite, collect small fee on swaps that can be redistribued
+- lp tokens are essentially shares  
+    - you get lp tokens in exchange for your liquidty
+    - get amt proportional to how much you put in
+-  can just mint more tokens according to the following equation
+    - amountMinted = totalAmount * ethdeposited/ethReserve
+- when initially adding liquidity, amount of LP tokens = amount of eth deposited
+Q: take fees in eth or token? pay rewards to lp providers in eth or token?
+A: paid in currency of traded in asset 
+Q: how to collect small fee from each swap?
+A: just subtract value from amount they send, indirect rewards
+Q: how to distribute fees to lp provideers proportionally
+A: reserves can be used to accumulate fees
+
+
 
 
